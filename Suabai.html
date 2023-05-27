@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form action="">
+        <fieldset>
+            <legend>Thông tin sinh viên</legend>
+            <p><b>Mã SV</b> <input type="text" id="txtId"></p>
+            <p><b>Họ tên</b> <input type="text" id="txtName"></p>
+            <p><b>Email</b> <input type="text" id="txtEmail"></p>
+            <fieldset id="marks">
+                <legend>Điểm</legend>
+                <div class="mark">
+                    <p><b>Môn</b> <input type="text" class="txtSubject"> | <b>Điểm</b> 
+                        <input type="number" class="txtMark">
+                        <button id="btn-plus" type="button">+</button>
+                    </p>
+                </div>
+                
+                <label for="search">Tìm kiếm</label>
+                <input type="text" name="search" id="txtSearch">
+            </fieldset>
+            <br>
+            <button id="btnAdd" type="button">Thêm</button>
+            <button id="btnSave" type="button">Lưu</button>
+        </fieldset>
+    </form>
+    <h2>Danh sách sinh viên</h2>
+    <table border="1" cellpadding="5" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Mã SV</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Điểm</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="list">
+
+        </tbody>
+    </table>
+    <script>
+let btnAdd = document.getElementById('btnAdd')
+let btnSave = document.getElementById('btnSave')
+let txtId = document.getElementById('txtId')
+let txtName = document.getElementById('txtName')
+let txtEmail = document.getElementById('txtEmail')
+let txtSearch = document.getElementById('txtSearch')
+var students = []
+var st = []
+st['id'] = 'SV01'
+st['name'] = 'Nguyen Van Nam'
+st['email'] = 'mail@gmail.com'
+var marks = []
+marks['html'] = 9
+marks['js'] = 6
+st['marks'] = marks
+students[0] = st
+
+//Function
+function initEdit(id) {
+    let st = students.find(x => x.id == id)
+    txtId.value = st.id
+    txtName.value = st.name
+    txtEmail.value = st.email
+    let i = 0
+    let domMarks = document.querySelectorAll('.mark')
+    for(let k in st.marks) {
+        let mark = domMarks[i++]
+        if(mark) {
+            mark.querySelector('.txtSubject').value = k
+            mark.querySelector('.txtMark').value = st.marks[k]
+        }else{
+            mark = document.createElement('div')
+            createMark(mark, k, st.marks[k])  
+        }
+    }
+    let totalMarks = Object.keys(st.marks).length
+    for(let j = totalMarks; j < domMarks.length; j++){
+        domMarks[j].remove()
+    }
+}
+function initDelete(id) {
+    let index = students.findIndex(x => x.id == id)
+    if(confirm('Are you sure you want to delete')){
+        students.splice(index, 1)
+        loadData()
+    }
+}
+function loadData() {
+    let rows = ''
+    for(let item of students) {
+        rows += `
+        <tr>
+            <td>${item.id}</td>
+            <td>${item.name}</td>
+            <td>${item.email}</td>
+        `
+        rows += '<td>'
+        for(let k in item.marks) {
+            rows += `<p><b>${k}:</b>${item.marks[k]}</b></p> `
+        }
+        rows += '</td>'
+        rows += `
+                <td>
+                    <button onclick = "initEdit('${item.id}')">Sửa</button>
+                    <button onclick = "initDelete('${item.id}')">Xóa</button>
+                </td>
+        `
+        rows += '</tr>'
+    }
+    document.getElementById('list').innerHTML = rows
+}
+//
+function createMark(el, subject, mark) {
+    el.className = 'mark'
+    el.innerHTML = `
+                    <p>
+                        <b>Môn</b> <input type="text" class="txtSubject"> | 
+                        <b>Điểm</b> <input type="number" class="txtMark">
+                        <button id="btn-minus" type="button">-</button>
+                    </p>
+            `
+            el.querySelector('.txtSubject').value = subject
+            el.querySelector('.txtMark').value = mark
+            document.getElementById('marks').appendChild(el)
+            el.querySelector('#btn-minus').addEventListener('click', function(){
+                this.parentNode.parentNode.remove()
+            })
+}
+function getData(obj) {
+            obj['id'] = txtId.value
+            obj['name'] = txtName.value
+            obj['email'] = txtEmail.value
+            let marks = []
+            document.querySelectorAll('.mark').forEach(function(el) {
+                let key = el.querySelector('.txtSubject').value
+                let value = el.querySelector('.txtMark').value
+                marks[key] = value
+            })
+            obj['marks'] = marks
+}
+loadData()
+document.getElementById('btn-plus').onclick = function () {
+    let divMark = document.createElement('div')
+    createMark(divMark)
+}
+// Add
+        btnAdd.onclick = function(){
+            let st = []
+           getData(st)
+            students.push(st)
+            loadData()
+        }
+        btnSave.onclick = function() {
+            let oldSt = students.find(x => x.id == txtId.value)
+            getData(oldSt)
+            loadData()
+        }
+//Search
+txtSearch.oninput = function() {
+    let search = students.filter(x => x.name.toLowerCase().includes(txtSearch.value.toLowerCase()))
+    if(search.length > 0){
+        console.log(search)
+        let rows = ''
+    for(let item of search) {
+        rows += `
+        <tr>
+            <td>${item.id}</td>
+            <td>${item.name}</td>
+            <td>${item.email}</td>
+        `
+        rows += '<td>'
+        for(let k in item.marks) {
+            rows += `<p><b>${k}:</b>${item.marks[k]}</b></p> `
+        }
+        rows += '</td>'
+        rows += `
+                <td>
+                    <button onclick = "initEdit('${item.id}')">Sửa</button>
+                    <button onclick = "initDelete('${item.id}')">Xóa</button>
+                </td>
+        `
+        rows += '</tr>'
+    }
+    document.getElementById('list').innerHTML = rows
+
+    }else{
+        console.log('none')
+        loadData()
+    }
+}
+    </script>
+</body>
+
+</html>
